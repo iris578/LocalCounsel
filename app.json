@@ -15,18 +15,22 @@
     },
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.counselvault.app",
       "infoPlist": {
-        "NSMicrophoneUsageDescription": "CounselVault needs microphone access to record client meetings."
+        "NSMicrophoneUsageDescription": "CounselVault needs microphone access to record client meetings.",
+        "NSSpeechRecognitionUsageDescription": "CounselVault uses on-device speech recognition to transcribe meetings."
       }
     },
     "android": {
+      "package": "com.counselvault.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0a0a0a"
       },
       "edgeToEdgeEnabled": true,
       "permissions": [
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
       ]
     },
     "web": {
@@ -40,7 +44,15 @@
         {
           "microphonePermission": "CounselVault needs microphone access to record client meetings."
         }
-      ]
-    ]
+      ],
+      "./plugins/withAndroidAbiFilters.js"
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "cfff1294-4a56-44b8-9780-03ec46c3a32d"
+      }
+    },
+    "owner": "iristenteije"
   }
 }
