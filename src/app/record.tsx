@@ -7,6 +7,7 @@ import { v4 as uuid } from 'uuid';
 import { db } from '../services/database';
 import { extractInfo } from '../services/extraction';
 import { indexMeeting } from '../services/embeddings';
+import { transcribeAudio as cactusTranscribe, isSTTReady } from '../services/cactus';
 import { useAppStore } from '../stores/appStore';
 import ProcessingModal from '../components/ProcessingModal';
 import { Matter } from '../types';
@@ -81,9 +82,13 @@ export default function RecordScreen() {
     } catch (err) { console.error('Processing failed:', err); setProcessing(false); Alert.alert('Error', 'Failed to process recording'); }
   };
 
-  const transcribeAudio = async (_uri: string): Promise<string> => {
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    return `Client stated that the contract was signed on March 15th. She mentioned that Tom Richards, her former boss, was present during the signing.\n\nThe client explained that on September 1st, she received an email from Mr. Richards explicitly asking her to delete certain files related to the Johnson account. She claims she refused to comply with this request.\n\nWhen asked about the timeline of events, the client seemed hesitant and had difficulty recalling specific dates between March and September. She mentioned the estimated damages are around fifty thousand dollars based on lost commissions.\n\nThe client provided the names of two potential witnesses: Sarah Chen from accounting and Mike Johnson, the account manager.`;
+  const transcribeAudio = async (uri: string): Promise<string> => {
+    // Check if STT is ready
+    if (!isSTTReady()) {
+      throw new Error('Speech recognition not initialized. Please restart the app.');
+    }
+    // Use real Cactus STT transcription
+    return await cactusTranscribe(uri);
   };
 
   const formatDuration = (seconds: number) => {

@@ -28,7 +28,7 @@ export const extractInfo = async (transcript: string): Promise<ExtractedInfo> =>
 
   try {
     const response = await completion(messages, {
-      n_predict: 1500,
+      maxTokens: 1500,
       temperature: 0.2,
     });
 
