@@ -1,11 +1,13 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { db } from '../services/database';
 import { initializeCactus, initializeCactusSTT } from '../services/cactus';
 import { useAppStore } from '../stores/appStore';
+
+const isWeb = Platform.OS === 'web';
 
 export default function RootLayout() {
   const [isLoading, setIsLoading] = useState(true);
@@ -24,18 +26,23 @@ export default function RootLayout() {
       setLoadingStep('Setting up local database...');
       await db.init();
 
-      // Download and initialize LLM for extraction/embeddings
-      setLoadingStep('Downloading AI model...');
-      await initializeCactus((progress) => {
-        setDownloadProgress(Math.round(progress * 100));
-      });
+      // Skip Cactus initialization on web (native-only module)
+      if (!isWeb) {
+        // Download and initialize LLM for extraction/embeddings
+        setLoadingStep('Downloading AI model...');
+        await initializeCactus((progress) => {
+          setDownloadProgress(Math.round(progress * 100));
+        });
 
-      // Download and initialize STT for transcription
-      setLoadingStep('Downloading speech recognition...');
-      setDownloadProgress(0);
-      await initializeCactusSTT((progress) => {
-        setDownloadProgress(Math.round(progress * 100));
-      });
+        // Download and initialize STT for transcription
+        setLoadingStep('Downloading speech recognition...');
+        setDownloadProgress(0);
+        await initializeCactusSTT((progress) => {
+          setDownloadProgress(Math.round(progress * 100));
+        });
+      } else {
+        console.log('Web platform detected - skipping Cactus initialization');
+      }
 
       setInitialized(true);
       setIsLoading(false);
