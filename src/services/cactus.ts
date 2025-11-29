@@ -38,6 +38,9 @@ let sttInstance: CactusSTT | null = null;
 let isInitialized = false;
 let isDownloaded = false;
 
+// Avoid local- prefixed model names; use production model name per Cactus guidance
+const STT_MODEL_NAME = 'whisper-small';
+
 // Download progress callback type
 type ProgressCallback = (progress: number) => void;
 
@@ -96,7 +99,7 @@ export const initializeCactusSTT = async (
   console.log('Initializing Cactus STT...');
 
   try {
-    sttInstance = new CactusSTT();
+    sttInstance = new CactusSTT({ model: STT_MODEL_NAME });
 
     await sttInstance.download((progress: number) => {
       console.log(`STT Download progress: ${Math.round(progress * 100)}%`);
