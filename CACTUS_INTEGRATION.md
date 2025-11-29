@@ -16,33 +16,13 @@ Cactus enables powerful AI features while keeping all data on-device.
 
 ## Cactus Features Used
 
-### 1. Speech-to-Text Transcription (STT)
+### 1. LLM Completion (Text Generation)
 
-**Purpose:** Transcribe recorded meeting audio to text entirely on-device
+**Purpose:** Extract structured legal information from meeting transcripts
 
-**Location:** `src/services/cactus.ts` → `transcribeAudio()`
+**Location:** `src/services/cactus.ts` → `completion()`
 
-**Used by:** `src/app/record.tsx`
-
-**What it does:**
-- Uses Cactus STT with the `whisper-small` model
-- Transcribes WAV audio files (16kHz, mono, 16-bit PCM)
-- Streaming transcription with token-by-token updates
-
-**Legal Value:**
-- Complete privacy - audio never leaves the device
-- No cloud transcription service exposure
-- Maintains attorney-client privilege for recorded conversations
-
----
-
-### 2. LLM Completion (Text Generation)
-
-**Purpose:** Extract structured legal information from meeting transcripts and answer questions
-
-**Location:** `src/services/cactus.ts` → `completion()`, `askQuestion()`, `askGlobalQuestion()`
-
-**Used by:** `src/services/extraction.ts`, Q&A features
+**Used by:** `src/services/extraction.ts`
 
 **What it does:**
 After a meeting is transcribed, Cactus analyzes the transcript and extracts:
@@ -52,24 +32,21 @@ After a meeting is transcribed, Cactus analyzes the transcript and extracts:
   "keyFacts": ["Contract signed March 15th", "Damages estimated at $50,000"],
   "people": [{"name": "Tom Richards", "role": "HR Director"}],
   "dates": [{"date": "September 1st", "context": "Email requesting file deletion"}],
-  "actionItems": ["Obtain original contract", "Interview witnesses"]
+  "actionItems": ["Obtain original contract", "Interview witnesses"],
+  "aiNoticed": "Client showed hesitation discussing timeline - worth following up"
 }
 ```
-
-**Q&A Features:**
-- `askQuestion()`: Answer questions about a single meeting transcript
-- `askGlobalQuestion()`: Search and answer across all meetings
 
 **Legal Value:**
 - Automatically identifies key facts for case building
 - Tracks all people mentioned with their roles
 - Captures important dates with context
 - Generates action items for follow-up
-- Natural language Q&A over meeting content
+- **AI Noticed**: Flags concerns, contradictions, or hesitations
 
 ---
 
-### 3. Embeddings (Semantic Search)
+### 2. Embeddings (Semantic Search)
 
 **Purpose:** Enable natural language search across all meetings
 
