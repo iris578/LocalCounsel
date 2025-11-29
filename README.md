@@ -2,6 +2,12 @@
 
 A privacy-first mobile app for attorneys to record, transcribe, and analyze client meetings — all on-device with no cloud dependency.
 
+## Download the App
+
+**Android APK:** [Download from Expo](https://expo.dev/accounts/irissv/projects/CounselVault/builds/0800668e-44c3-403f-8919-c7ddc59c3843)
+
+Scan the QR code or open the link on your Android device to install.
+
 ## Features
 
 - **On-Device Recording** — Record meetings directly on your phone with high-quality audio
