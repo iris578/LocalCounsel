@@ -54,20 +54,17 @@ export default function RecordScreen() {
         return;
       }
       await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
-      // Use M4A/AAC format for Android (widely supported), WAV/PCM for iOS
-      // Whisper can handle both formats
+      // Use WAV/PCM for both platforms to align with Cactus STT expectations
       const recordingOptions = {
-        ...Audio.RecordingOptionsPresets.HIGH_QUALITY,
         android: {
-          extension: '.m4a',
-          outputFormat: Audio.AndroidOutputFormat.MPEG_4,
-          audioEncoder: Audio.AndroidAudioEncoder.AAC,
+          extension: '.wav',
+          outputFormat: Audio.AndroidOutputFormat.DEFAULT,
+          audioEncoder: Audio.AndroidAudioEncoder.DEFAULT,
           sampleRate: 16000,
           numberOfChannels: 1,
-          bitRate: 128000,
+          bitRate: 256000,
         },
         ios: {
-          ...Audio.RecordingOptionsPresets.HIGH_QUALITY.ios,
           extension: '.wav',
           outputFormat: Audio.IOSOutputFormat.LINEARPCM,
           audioQuality: Audio.IOSAudioQuality.HIGH,
@@ -162,7 +159,12 @@ export default function RecordScreen() {
       throw new Error('Recording file path missing');
     }
     console.log('Transcribing audio from:', filePath);
-    return await cactusTranscribe(filePath);
+    try {
+      return await cactusTranscribe(filePath);
+    } catch (error: any) {
+      console.error('Cactus transcription failed for', filePath, error);
+      throw new Error('Cactus transcription failed. Please retry recording. If this persists, ensure the model is downloaded and microphone permission is granted.');
+    }
   };
 
   const formatDuration = (seconds: number) => {
