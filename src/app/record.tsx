@@ -54,20 +54,25 @@ export default function RecordScreen() {
         return;
       }
       await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
-      // Use WAV format for compatibility with Whisper STT
+      // Use M4A/AAC format for Android (widely supported), WAV/PCM for iOS
+      // Whisper can handle both formats
       const recordingOptions = {
         ...Audio.RecordingOptionsPresets.HIGH_QUALITY,
         android: {
-          ...Audio.RecordingOptionsPresets.HIGH_QUALITY.android,
-          extension: '.wav',
-          outputFormat: Audio.AndroidOutputFormat.DEFAULT,
-          audioEncoder: Audio.AndroidAudioEncoder.DEFAULT,
+          extension: '.m4a',
+          outputFormat: Audio.AndroidOutputFormat.MPEG_4,
+          audioEncoder: Audio.AndroidAudioEncoder.AAC,
+          sampleRate: 16000,
+          numberOfChannels: 1,
+          bitRate: 128000,
         },
         ios: {
           ...Audio.RecordingOptionsPresets.HIGH_QUALITY.ios,
           extension: '.wav',
           outputFormat: Audio.IOSOutputFormat.LINEARPCM,
           audioQuality: Audio.IOSAudioQuality.HIGH,
+          sampleRate: 16000,
+          numberOfChannels: 1,
           linearPCMBitDepth: 16,
           linearPCMIsBigEndian: false,
           linearPCMIsFloat: false,
