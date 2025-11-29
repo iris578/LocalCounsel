@@ -239,31 +239,33 @@ export const transcribeAudio = async (
   console.log('Cactus STT transcribing:', filePath);
 
   try {
-    const result = await sttInstance.transcribe(
-      { audioFilePath: filePath },
-      undefined, // prompt
-      undefined, // options
-      onToken
-    );
+    const result = await sttInstance.transcribe({
+      audioFilePath: filePath,
+      onToken,
+    });
 
     // Validate result before returning
     if (!result) {
       throw new Error('Cactus STT returned null/undefined result');
     }
 
-    if (typeof result.transcription !== 'string') {
-      console.error('Unexpected transcription type:', typeof result.transcription, result);
+    if (!result.success) {
+      throw new Error('Cactus STT transcription failed');
+    }
+
+    if (typeof result.response !== 'string') {
+      console.error('Unexpected transcription type:', typeof result.response, result);
       throw new Error(`Invalid transcription result: ${JSON.stringify(result)}`);
     }
 
-    return result.transcription;
+    console.log(`STT: ${result.tokensPerSecond?.toFixed(1)} tokens/sec, ${result.totalTimeMs}ms`);
+    return result.response;
   } catch (error: any) {
     console.error('Transcription error:', error);
-    // Check if this is the "replace of undefined" error from inside cactus SDK
-    if (error?.message?.includes('replace') && error?.message?.includes('undefined')) {
-      throw new Error('Audio transcription failed - the recording file may be corrupted or in an unsupported format. Try recording again.');
-    }
-    throw error;
+    const errorMsg = error?.message || error?.toString() || 'Unknown transcription error';
+    console.error('Transcription error message:', errorMsg);
+    // Re-throw with more context
+    throw new Error(`Transcription failed: ${errorMsg}`);
   }
 };
 

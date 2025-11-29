@@ -54,7 +54,8 @@ export default function RecordScreen() {
         return;
       }
       await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
-      // Use WAV/PCM for both platforms to align with Cactus STT expectations
+      // Use WAV/PCM format for Whisper STT compatibility
+      // 16kHz mono 16-bit is optimal for speech recognition
       const recordingOptions = {
         android: {
           extension: '.wav',
@@ -70,9 +71,14 @@ export default function RecordScreen() {
           audioQuality: Audio.IOSAudioQuality.HIGH,
           sampleRate: 16000,
           numberOfChannels: 1,
+          bitDepth: 16,
           linearPCMBitDepth: 16,
           linearPCMIsBigEndian: false,
           linearPCMIsFloat: false,
+        },
+        web: {
+          mimeType: 'audio/webm',
+          bitsPerSecond: 128000,
         },
       };
       const { recording } = await Audio.Recording.createAsync(recordingOptions);
@@ -159,11 +165,22 @@ export default function RecordScreen() {
       throw new Error('Recording file path missing');
     }
     console.log('Transcribing audio from:', filePath);
+    console.log('Original URI:', uri);
+    console.log('Platform:', Platform.OS);
+
     try {
-      return await cactusTranscribe(filePath);
-    } catch (error: any) {
-      console.error('Cactus transcription failed for', filePath, error);
-      throw new Error('Cactus transcription failed. Please retry recording. If this persists, ensure the model is downloaded and microphone permission is granted.');
+      const result = await cactusTranscribe(filePath);
+      console.log('Transcription successful, length:', result?.length);
+      return result;
+    } catch (err: any) {
+      console.error('Cactus transcription error details:', {
+        message: err?.message,
+        name: err?.name,
+        stack: err?.stack,
+        filePath,
+        originalUri: uri,
+      });
+      throw new Error(`Cactus transcription failed: ${err?.message || 'Unknown error'}`);
     }
   };
 
