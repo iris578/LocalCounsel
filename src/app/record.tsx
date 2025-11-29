@@ -32,8 +32,8 @@ export default function RecordScreen() {
   const [matters, setMatters] = useState<Matter[]>([]);
   const [showNewMatterModal, setShowNewMatterModal] = useState(false);
   const [newMatterName, setNewMatterName] = useState('');
-  const [audioRecordInitialized, setAudioRecordInitialized] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const currentWavFile = useRef<string>('recording.wav');
 
   useEffect(() => {
     loadMatters();
@@ -76,7 +76,10 @@ export default function RecordScreen() {
   };
 
   const initAudioRecord = () => {
-    if (!AudioRecord || audioRecordInitialized) return;
+    if (!AudioRecord) return;
+
+    // Use unique filename for each recording to avoid caching issues
+    currentWavFile.current = `recording_${Date.now()}.wav`;
 
     // Configure for Whisper-compatible WAV: 16kHz, mono, 16-bit
     const options = {
@@ -84,11 +87,10 @@ export default function RecordScreen() {
       channels: 1,
       bitsPerSample: 16,
       audioSource: 6, // VOICE_RECOGNITION on Android
-      wavFile: 'recording.wav',
+      wavFile: currentWavFile.current,
     };
 
     AudioRecord.init(options);
-    setAudioRecordInitialized(true);
     console.log('AudioRecord initialized with options:', options);
   };
 

@@ -34,7 +34,9 @@ export const extractInfo = async (transcript: string): Promise<ExtractedInfo> =>
     // Parse JSON from response
     const jsonMatch = response.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0]);
+      // Sanitize control characters that can break JSON parsing
+      const sanitized = jsonMatch[0].replace(/[\x00-\x1F\x7F]/g, ' ');
+      const parsed = JSON.parse(sanitized);
       return {
         keyFacts: parsed.keyFacts || [],
         people: parsed.people || [],
@@ -45,9 +47,10 @@ export const extractInfo = async (transcript: string): Promise<ExtractedInfo> =>
     throw new Error('No JSON found in response');
   } catch (e) {
     console.error('Failed to parse extraction:', e);
+    console.error('Raw LLM response:', response);
     // Return empty structure on failure
     return {
-      keyFacts: [],
+      keyFacts: ['[Extraction temporarily unavailable]'],
       people: [],
       dates: [],
       actionItems: [],

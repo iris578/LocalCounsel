@@ -52,6 +52,16 @@ On first launch, the app will download the AI models (~500MB total):
 
 This is a one-time download. After that, everything runs offline.
 
+## Demo Mode (For Judges)
+
+To quickly explore the app's features without recording audio:
+
+1. Go to **Settings** (gear icon in the top right)
+2. Tap **"Load Demo Data"**
+3. This populates the app with sample matters and meeting transcripts
+
+**Note:** Demo mode uses pre-loaded transcripts, but all AI features (Q&A, semantic search, extraction) still run through the real Cactus on-device models. This demonstrates the full AI pipeline without requiring live audio recording.
+
 ## Usage
 
 1. **Create a Matter** — Organize your work by client or case
