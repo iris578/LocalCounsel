@@ -215,17 +215,195 @@ export const transcribeAudio = async (
     throw new Error('Cactus STT not initialized. Call initializeCactusSTT first.');
   }
 
+  // Validate audioPath before passing to native SDK
+  // The cactus SDK may call .replace() internally on the path
+  if (!audioPath || typeof audioPath !== 'string' || audioPath.length === 0) {
+    throw new Error(`Invalid audio path passed to transcribeAudio: ${JSON.stringify(audioPath)}`);
+  }
+
+  // Ensure we have an absolute file path (not a file:// URI)
+  // Some Android devices return paths without file:// prefix
+  let filePath = audioPath;
+  if (filePath.startsWith('file://')) {
+    filePath = filePath.replace('file://', '');
+  }
+
+  // Validate the processed path
+  if (!filePath || filePath.length === 0) {
+    throw new Error(`Failed to process audio path: original=${audioPath}, processed=${filePath}`);
+  }
+
+  console.log('Cactus STT transcribing:', filePath);
+
   try {
     const result = await sttInstance.transcribe(
-      audioPath,
+      filePath,
       undefined, // prompt
       undefined, // options
       onToken
     );
 
+    // Validate result before returning
+    if (!result) {
+      throw new Error('Cactus STT returned null/undefined result');
+    }
+
+    if (typeof result.transcription !== 'string') {
+      console.error('Unexpected transcription type:', typeof result.transcription, result);
+      throw new Error(`Invalid transcription result: ${JSON.stringify(result)}`);
+    }
+
     return result.transcription;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Transcription error:', error);
+    // Check if this is the "replace of undefined" error from inside cactus SDK
+    if (error?.message?.includes('replace') && error?.message?.includes('undefined')) {
+      throw new Error('Audio transcription failed - the recording file may be corrupted or in an unsupported format. Try recording again.');
+    }
+    throw error;
+  }
+};
+
+/**
+ * Clean up qwen3 model response - removes thinking tokens and special tokens
+ */
+const cleanResponse = (response: string): string => {
+  let cleaned = response;
+  // Remove <think>...</think> blocks
+  cleaned = cleaned.replace(/<think>[\s\S]*?<\/think>/gi, '');
+  // Remove qwen special tokens
+  cleaned = cleaned.replace(/<\|im_end\|>/g, '');
+  cleaned = cleaned.replace(/<\|im_start\|>/g, '');
+  cleaned = cleaned.replace(/<\|endoftext\|>/g, '');
+  // Remove common preamble phrases
+  cleaned = cleaned.replace(/^(Okay,?\s*|Let me see,?\s*|Let's see,?\s*|Let me check,?\s*|Alright,?\s*)/i, '');
+  return cleaned.trim();
+};
+
+/**
+ * Ask a question about a meeting transcript
+ * Uses the transcript as context to answer questions
+ */
+export const askQuestion = async (
+  question: string,
+  transcript: string,
+  onToken?: (token: string) => void
+): Promise<string> => {
+  if (isWeb) {
+    console.log('[Web Mock] Question requested - returning placeholder');
+    return '[Q&A not available on web. Use mobile app for AI-powered answers.]';
+  }
+
+  if (!lmInstance || !isInitialized) {
+    throw new Error('Cactus not initialized. Call initializeCactus first.');
+  }
+
+  const systemPrompt = `You are a legal assistant helping an attorney review a meeting transcript.
+Answer questions based ONLY on the transcript provided. Be concise and factual.
+If the information is not in the transcript, say so. Do not make up information.
+IMPORTANT: Do NOT include any thinking, preamble, or phrases like "Okay", "Let me see", "Let's check" - just give the direct answer.`;
+
+  const userPrompt = `/no_think
+TRANSCRIPT:
+${transcript}
+
+QUESTION: ${question}
+
+Answer directly without any preamble:`;
+
+  const messages: CactusMessage[] = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt },
+  ];
+
+  try {
+    const result = await lmInstance.complete(
+      { messages },
+      {
+        maxTokens: 500,
+        temperature: 0.3,
+        topP: 0.9,
+        topK: 40,
+      },
+      undefined,
+      onToken ? (token: string) => onToken(token) : undefined
+    );
+
+    if (result.success) {
+      console.log(`Q&A: ${result.tokensPerSecond?.toFixed(1)} tokens/sec`);
+      return cleanResponse(result.response);
+    } else {
+      throw new Error('Q&A completion failed');
+    }
+  } catch (error) {
+    console.error('Q&A error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Ask a question across all meetings (global search with AI)
+ * Uses multiple transcript contexts to answer questions
+ */
+export const askGlobalQuestion = async (
+  question: string,
+  contexts: { meetingId: string; transcript: string; matterName: string }[],
+  onToken?: (token: string) => void
+): Promise<string> => {
+  if (isWeb) {
+    console.log('[Web Mock] Global question requested - returning placeholder');
+    return '[Global Q&A not available on web. Use mobile app for AI-powered answers.]';
+  }
+
+  if (!lmInstance || !isInitialized) {
+    throw new Error('Cactus not initialized. Call initializeCactus first.');
+  }
+
+  // Combine contexts with matter info
+  const combinedContext = contexts
+    .map((ctx, i) => `--- Meeting ${i + 1} (${ctx.matterName}) ---\n${ctx.transcript}`)
+    .join('\n\n');
+
+  const systemPrompt = `You are a legal assistant helping an attorney search across multiple meeting transcripts.
+Answer questions based ONLY on the transcripts provided. Be concise and factual.
+When referencing information, mention which meeting it came from.
+If the information is not in any transcript, say so. Do not make up information.
+IMPORTANT: Do NOT include any thinking, preamble, or phrases like "Okay", "Let me see", "Let's check" - just give the direct answer.`;
+
+  const userPrompt = `/no_think
+MEETING TRANSCRIPTS:
+${combinedContext}
+
+QUESTION: ${question}
+
+Answer directly without any preamble:`;
+
+  const messages: CactusMessage[] = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt },
+  ];
+
+  try {
+    const result = await lmInstance.complete(
+      { messages },
+      {
+        maxTokens: 800,
+        temperature: 0.3,
+        topP: 0.9,
+        topK: 40,
+      },
+      undefined,
+      onToken ? (token: string) => onToken(token) : undefined
+    );
+
+    if (result.success) {
+      console.log(`Global Q&A: ${result.tokensPerSecond?.toFixed(1)} tokens/sec`);
+      return cleanResponse(result.response);
+    } else {
+      throw new Error('Global Q&A completion failed');
+    }
+  } catch (error) {
+    console.error('Global Q&A error:', error);
     throw error;
   }
 };
