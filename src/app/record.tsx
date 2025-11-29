@@ -79,7 +79,9 @@ export default function RecordScreen() {
     if (!AudioRecord) return;
 
     // Use unique filename for each recording to avoid caching issues
-    currentWavFile.current = `recording_${Date.now()}.wav`;
+    // Include random component to ensure uniqueness even if Date.now() is same
+    const uniqueId = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    currentWavFile.current = `recording_${uniqueId}.wav`;
 
     // Configure for Whisper-compatible WAV: 16kHz, mono, 16-bit
     const options = {
@@ -90,8 +92,8 @@ export default function RecordScreen() {
       wavFile: currentWavFile.current,
     };
 
+    console.log('Initializing AudioRecord with unique file:', currentWavFile.current);
     AudioRecord.init(options);
-    console.log('AudioRecord initialized with options:', options);
   };
 
   const startRecording = async () => {
