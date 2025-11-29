@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Modal, FlatList, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Modal, FlatList, TextInput, Platform } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Audio } from 'expo-av';
@@ -95,7 +95,15 @@ export default function RecordScreen() {
       await recordingRef.current.stopAndUnloadAsync();
       const uri = recordingRef.current.getURI();
       recordingRef.current = null;
-      if (uri && selectedMatter) await processRecording(uri);
+      if (!uri) {
+        Alert.alert('Error', 'No audio file was created. Please try recording again.');
+        return;
+      }
+      if (!selectedMatter) {
+        Alert.alert('Select Matter', 'Please select a matter first');
+        return;
+      }
+      await processRecording(uri);
     } catch (err) {
       console.error('Failed to stop recording:', err);
       Alert.alert('Error', 'Failed to stop recording');
@@ -133,13 +141,21 @@ export default function RecordScreen() {
   };
 
   const transcribeAudio = async (uri: string): Promise<string> => {
+    // Web fallback: STT is native-only, so return a placeholder transcript to keep the flow working
+    if (Platform.OS === 'web') {
+      return '[Transcription unavailable on web preview. Please use a mobile build for real recording and transcription.]';
+    }
+
     // Check if STT is ready
     if (!isSTTReady()) {
       throw new Error('Speech recognition not initialized. Please restart the app.');
     }
     // Convert file:// URI to path for Cactus STT
     // Cactus expects a file path, not a URI
-    const filePath = uri.startsWith('file://') ? uri.replace('file://', '') : uri;
+    const filePath = uri?.startsWith('file://') ? uri.replace('file://', '') : uri;
+    if (!filePath) {
+      throw new Error('Recording file path missing');
+    }
     console.log('Transcribing audio from:', filePath);
     return await cactusTranscribe(filePath);
   };

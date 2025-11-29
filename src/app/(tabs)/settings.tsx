@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { db } from '../../services/database';
 import { useAppStore } from '../../stores/appStore';
@@ -18,28 +18,30 @@ export default function SettingsScreen() {
     ]);
   };
 
+  const runLoadDemoData = async () => {
+    setIsLoadingDemo(true);
+    try {
+      await loadDemoData();
+      const matters = await db.getMatters();
+      setMatters(matters);
+      Alert.alert('Success', 'Demo data loaded successfully!');
+    } catch (error) {
+      console.error('Failed to load demo data:', error);
+      Alert.alert('Error', 'Failed to load demo data');
+    }
+    setIsLoadingDemo(false);
+  };
+
   const handleLoadDemoData = async () => {
+    // On web, Alert multi-button prompts are unreliable, so run immediately
+    if (Platform.OS === 'web') {
+      await runLoadDemoData();
+      return;
+    }
+
     Alert.alert('Load Demo Data', 'This will add sample matters and meetings with realistic legal scenarios.', [
-      {
-        text: 'Cancel',
-        style: 'cancel',
-      },
-      {
-        text: 'Load Demo',
-        onPress: async () => {
-          setIsLoadingDemo(true);
-          try {
-            await loadDemoData();
-            const matters = await db.getMatters();
-            setMatters(matters);
-            Alert.alert('Success', 'Demo data loaded successfully!');
-          } catch (error) {
-            console.error('Failed to load demo data:', error);
-            Alert.alert('Error', 'Failed to load demo data');
-          }
-          setIsLoadingDemo(false);
-        },
-      },
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Load Demo', onPress: runLoadDemoData },
     ]);
   };
 
