@@ -8,8 +8,7 @@ Extract the following information in JSON format:
   "keyFacts": ["Important factual statements about the case"],
   "people": [{"name": "Person Name", "role": "Their role if mentioned"}],
   "dates": [{"date": "Date mentioned", "context": "What the date refers to"}],
-  "actionItems": ["Tasks or follow-ups needed"],
-  "aiNoticed": "Any concerns, contradictions, hesitations, or items worth following up on"
+  "actionItems": ["Tasks or follow-ups needed"]
 }
 
 Be concise. Focus on legally relevant information.
@@ -41,7 +40,6 @@ export const extractInfo = async (transcript: string): Promise<ExtractedInfo> =>
         people: parsed.people || [],
         dates: parsed.dates || [],
         actionItems: parsed.actionItems || [],
-        aiNoticed: parsed.aiNoticed || undefined,
       };
     }
     throw new Error('No JSON found in response');
@@ -53,7 +51,6 @@ export const extractInfo = async (transcript: string): Promise<ExtractedInfo> =>
       people: [],
       dates: [],
       actionItems: [],
-      aiNoticed: 'Unable to extract information automatically.',
     };
   }
 };
@@ -99,6 +96,5 @@ export const extractInfoDemo = async (transcript: string): Promise<ExtractedInfo
     people,
     dates,
     actionItems: actionItems.length > 0 ? actionItems : ['Review transcript for follow-up items'],
-    aiNoticed: 'Transcript analysis complete. Review highlighted sections for potential concerns.',
   };
 };

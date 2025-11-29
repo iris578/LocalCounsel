@@ -21,7 +21,6 @@ export interface ExtractedInfo {
   people: { name: string; role?: string }[];
   dates: { date: string; context: string }[];
   actionItems: string[];
-  aiNoticed?: string;
 }
 
 export interface SearchResult {

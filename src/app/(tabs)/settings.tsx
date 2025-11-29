@@ -5,6 +5,7 @@ import { db } from '../../services/database';
 import { useAppStore } from '../../stores/appStore';
 import { loadDemoData } from '../../utils/demoData';
 import { theme } from '../../theme/tokens';
+import { SvgIcon } from '../../components/SvgIcon';
 
 export default function SettingsScreen() {
   const { setMatters } = useAppStore();
@@ -101,7 +102,7 @@ export default function SettingsScreen() {
           <Text style={styles.sectionTitle}>Data</Text>
           <View style={styles.card}>
             <TouchableOpacity style={styles.dataRow} onPress={handleLoadDemoData} disabled={isLoadingDemo}>
-              <Text style={styles.dataIcon}>+</Text>
+              <SvgIcon name="download-simple" size={22} style={styles.dataIcon} />
               <View style={styles.dataContent}>
                 <Text style={styles.dataTitle}>Load Demo Data</Text>
                 <Text style={styles.dataSubtitle}>{isLoadingDemo ? 'Loading...' : 'Add sample matters and meetings'}</Text>
@@ -109,7 +110,7 @@ export default function SettingsScreen() {
             </TouchableOpacity>
             <View style={styles.divider} />
             <TouchableOpacity style={styles.dataRow} onPress={handleClearData}>
-              <Text style={styles.dataIcon}>!</Text>
+              <SvgIcon name="warning" size={22} style={styles.dataIcon} />
               <View style={styles.dataContent}>
                 <Text style={[styles.dataTitle, styles.dangerText]}>Clear All Data</Text>
                 <Text style={styles.dataSubtitle}>Delete all matters, meetings, and recordings</Text>
@@ -161,7 +162,7 @@ const styles = StyleSheet.create({
   privacyText: { fontSize: 13, color: theme.palette.accentGrey, lineHeight: 18 },
   divider: { height: 1, backgroundColor: theme.palette.sandBase, marginLeft: 16 },
   dataRow: { flexDirection: 'row', alignItems: 'center', padding: 16 },
-  dataIcon: { fontSize: 20, marginRight: 14, color: theme.palette.charcoal, fontWeight: '700' },
+  dataIcon: { marginRight: 14 },
   dataContent: { flex: 1 },
   dataTitle: { fontSize: 16, fontWeight: '700', color: theme.palette.charcoal, marginBottom: 2 },
   dataSubtitle: { fontSize: 13, color: theme.palette.accentGrey },

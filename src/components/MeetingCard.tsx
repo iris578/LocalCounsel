@@ -46,11 +46,6 @@ export default function MeetingCard({ meeting, onPress }: MeetingCardProps) {
     return 'No transcript available';
   };
 
-  const hasAiNotices =
-    meeting.extractedInfo.aiNoticed &&
-    meeting.extractedInfo.aiNoticed.length > 0 &&
-    !meeting.extractedInfo.aiNoticed.includes('Unable to extract');
-
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={styles.header}>
@@ -59,11 +54,6 @@ export default function MeetingCard({ meeting, onPress }: MeetingCardProps) {
           <Text style={styles.time}>{formatTime(meeting.recordedAt)}</Text>
         </View>
         <View style={styles.badges}>
-          {hasAiNotices && (
-            <View style={styles.badgeWarning}>
-              <Text style={styles.badgeWarningText}>AI noticed</Text>
-            </View>
-          )}
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{formatDuration(meeting.durationSeconds)}</Text>
           </View>
@@ -131,17 +121,6 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     color: theme.palette.charcoal,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  badgeWarning: {
-    backgroundColor: theme.palette.softYellow,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: theme.radii.md,
-  },
-  badgeWarningText: {
-    color: theme.palette.warmBrown,
     fontSize: 12,
     fontWeight: '600',
   },

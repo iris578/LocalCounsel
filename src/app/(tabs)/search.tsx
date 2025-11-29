@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { searchMeetings } from '../../services/embeddings';
 import { db } from '../../services/database';
 import { theme } from '../../theme/tokens';
+import { SvgIcon } from '../../components/SvgIcon';
 
 interface SearchResultItem {
   meetingId: string;
@@ -57,8 +58,8 @@ export default function SearchScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Search</Text>
-        <Text style={styles.subtitle}>Find anything in your meetings</Text>
+        <Text style={styles.title}>Ask</Text>
+        <Text style={styles.subtitle}>Ask anything about your matters and meetings</Text>
       </View>
       <View style={styles.searchContainer}>
         <View style={styles.searchInputWrapper}>
@@ -90,7 +91,14 @@ export default function SearchScreen() {
           onPress={handleSearch}
           disabled={!query.trim() || searching}
         >
-          {searching ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.searchButtonText}>Search</Text>}
+          {searching ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <View style={styles.askButtonContent}>
+              <SvgIcon name="sparkle" size={16} color="#fff" style={styles.askButtonIcon} />
+              <Text style={styles.searchButtonText}>Ask</Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
       {!hasSearched && (
@@ -166,6 +174,8 @@ const styles = StyleSheet.create({
   },
   searchButtonDisabled: { backgroundColor: theme.palette.accentGrey },
   searchButtonText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  askButtonContent: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  askButtonIcon: { marginRight: 2 },
   examplesContainer: { paddingHorizontal: theme.spacing.lg, paddingTop: theme.spacing.lg },
   examplesTitle: { color: theme.palette.accentGrey, fontSize: 14, marginBottom: 12 },
   exampleChip: {

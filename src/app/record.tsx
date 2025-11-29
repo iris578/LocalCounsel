@@ -12,6 +12,7 @@ import { useAppStore } from '../stores/appStore';
 import ProcessingModal from '../components/ProcessingModal';
 import { Matter } from '../types';
 import { theme } from '../theme/tokens';
+import { SvgIcon } from '../components/SvgIcon';
 
 export default function RecordScreen() {
   const router = useRouter();
@@ -224,7 +225,9 @@ export default function RecordScreen() {
                     setShowMatterPicker(false);
                   }}
                 >
-                  <Text style={styles.matterItemIcon}>M</Text>
+                  <View style={styles.matterItemIcon}>
+                    <SvgIcon name="briefcase" size={20} />
+                  </View>
                   <View style={styles.matterItemContent}>
                     <Text style={styles.matterItemName}>{item.name}</Text>
                     <Text style={styles.matterItemMeta}>{item.meetingCount} meetings</Text>
@@ -356,7 +359,13 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.palette.sandBase,
   },
   matterItemSelected: { backgroundColor: theme.palette.sandBase },
-  matterItemIcon: { fontSize: 16, marginRight: 12, color: theme.palette.charcoal, fontWeight: '700' },
+  matterItemIcon: {
+    marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 24,
+    height: 24,
+  },
   matterItemContent: { flex: 1 },
   matterItemName: { color: theme.palette.charcoal, fontSize: 16, fontWeight: '700' },
   matterItemMeta: { color: theme.palette.accentGrey, fontSize: 13, marginTop: 2 },

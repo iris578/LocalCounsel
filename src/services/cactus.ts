@@ -127,7 +127,6 @@ export const completion = async (
       people: [],
       dates: [],
       actionItems: ['Test on mobile device for AI-powered extraction'],
-      aiNoticed: 'Running in web mock mode - Cactus AI requires native mobile device',
     });
   }
 

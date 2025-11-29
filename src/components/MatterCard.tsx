@@ -1,6 +1,7 @@
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import { Matter } from '../types';
 import { theme } from '../theme/tokens';
+import { SvgIcon } from './SvgIcon';
 
 interface MatterCardProps {
   matter: Matter;
@@ -21,7 +22,7 @@ export default function MatterCard({ matter, onPress }: MatterCardProps) {
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={styles.iconContainer}>
-        <Text style={styles.icon}>M</Text>
+        <SvgIcon name="briefcase" size={22} />
       </View>
       <View style={styles.content}>
         <Text style={styles.name} numberOfLines={1}>
@@ -60,11 +61,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: theme.spacing.md,
     ...theme.shadows.soft,
-  },
-  icon: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: theme.palette.charcoal,
   },
   content: {
     flex: 1,

@@ -64,7 +64,7 @@ export default function MatterDetailScreen() {
         options={{
           title: matter.name,
           headerRight: () => (
-            <TouchableOpacity onPress={handleDeleteMatter}>
+            <TouchableOpacity onPress={handleDeleteMatter} style={styles.headerAction} hitSlop={{ top: 10, right: 14, bottom: 10, left: 10 }}>
               <Text style={styles.deleteText}>Delete</Text>
             </TouchableOpacity>
           ),
@@ -119,6 +119,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.palette.lilacMist },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   loadingText: { color: theme.palette.accentGrey, fontSize: 16 },
+  headerAction: { paddingHorizontal: 10, paddingVertical: 6 },
   deleteText: { color: theme.palette.coral, fontSize: 16, fontWeight: '700' },
   header: {
     flexDirection: 'row',

@@ -68,7 +68,7 @@ export default function MeetingDetailScreen() {
         options={{
           title: 'Meeting',
           headerRight: () => (
-            <TouchableOpacity onPress={handleDelete}>
+            <TouchableOpacity onPress={handleDelete} style={styles.headerAction} hitSlop={{ top: 10, right: 14, bottom: 10, left: 10 }}>
               <Text style={styles.deleteText}>Delete</Text>
             </TouchableOpacity>
           ),
@@ -98,15 +98,6 @@ export default function MeetingDetailScreen() {
           </View>
           {activeTab === 'summary' ? (
             <>
-              {extractedInfo.aiNoticed && !extractedInfo.aiNoticed.includes('Unable') && (
-                <View style={styles.aiNoticeCard}>
-                  <View style={styles.aiNoticeHeader}>
-                    <Text style={styles.aiNoticeIcon}>!</Text>
-                    <Text style={styles.aiNoticeTitle}>AI Noticed</Text>
-                  </View>
-                  <Text style={styles.aiNoticeText}>{extractedInfo.aiNoticed}</Text>
-                </View>
-              )}
               {extractedInfo.keyFacts.length > 0 && (
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>Key Facts</Text>
@@ -183,6 +174,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.palette.lilacMist },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   loadingText: { color: theme.palette.accentGrey, fontSize: 16 },
+  headerAction: { paddingHorizontal: 10, paddingVertical: 6 },
   deleteText: { color: theme.palette.coral, fontSize: 16, fontWeight: '700' },
   content: { padding: theme.spacing.lg, paddingBottom: 40 },
   header: { marginBottom: 20 },
@@ -196,18 +188,6 @@ const styles = StyleSheet.create({
   tabActive: { backgroundColor: theme.palette.sandBase },
   tabText: { fontSize: 14, fontWeight: '700', color: theme.palette.accentGrey },
   tabTextActive: { color: theme.palette.charcoal },
-  aiNoticeCard: {
-    backgroundColor: theme.palette.softYellow,
-    borderRadius: theme.radii.xl,
-    padding: theme.spacing.lg,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: theme.palette.warmBrown,
-  },
-  aiNoticeHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  aiNoticeIcon: { fontSize: 16, marginRight: 8, color: theme.palette.warmBrown, fontWeight: '700' },
-  aiNoticeTitle: { fontSize: 15, fontWeight: '700', color: theme.palette.warmBrown },
-  aiNoticeText: { fontSize: 14, color: theme.palette.charcoal, lineHeight: 20 },
   section: { marginBottom: 20 },
   sectionTitle: { fontSize: 14, fontWeight: '700', color: theme.palette.accentGrey, marginBottom: 10, marginLeft: 4 },
   card: { backgroundColor: theme.palette.creamLight, borderRadius: theme.radii.xl, padding: theme.spacing.lg, ...theme.shadows.soft },
