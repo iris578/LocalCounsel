@@ -237,7 +237,7 @@ export const transcribeAudio = async (
 
   try {
     const result = await sttInstance.transcribe(
-      filePath,
+      { audioFilePath: filePath },
       undefined, // prompt
       undefined, // options
       onToken
