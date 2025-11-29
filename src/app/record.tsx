@@ -1,5 +1,6 @@
+import 'react-native-get-random-values'; // Must be first - polyfill for uuid
 import { useState, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Modal, FlatList, TextInput, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Modal, FlatList, TextInput, Platform, PermissionsAndroid } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Audio } from 'expo-av';
@@ -14,6 +15,12 @@ import { Matter } from '../types';
 import { theme } from '../theme/tokens';
 import { SvgIcon } from '../components/SvgIcon';
 
+// Use react-native-audio-record for WAV recording on native platforms
+let AudioRecord: any = null;
+if (Platform.OS !== 'web') {
+  AudioRecord = require('react-native-audio-record').default;
+}
+
 export default function RecordScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ matterId?: string; matterName?: string }>();
@@ -25,7 +32,7 @@ export default function RecordScreen() {
   const [matters, setMatters] = useState<Matter[]>([]);
   const [showNewMatterModal, setShowNewMatterModal] = useState(false);
   const [newMatterName, setNewMatterName] = useState('');
-  const recordingRef = useRef<Audio.Recording | null>(null);
+  const [audioRecordInitialized, setAudioRecordInitialized] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -41,51 +48,80 @@ export default function RecordScreen() {
     if (!params.matterId && data.length > 0) setSelectedMatter(data[0]);
   };
 
+  const requestPermissions = async (): Promise<boolean> => {
+    if (Platform.OS === 'web') return true;
+
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+          {
+            title: 'Microphone Permission',
+            message: 'LocalCounsel needs access to your microphone to record meetings.',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          }
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } catch (err) {
+        console.error('Permission error:', err);
+        return false;
+      }
+    }
+
+    // iOS - use expo-av for permission request
+    const permission = await Audio.requestPermissionsAsync();
+    return permission.granted;
+  };
+
+  const initAudioRecord = () => {
+    if (!AudioRecord || audioRecordInitialized) return;
+
+    // Configure for Whisper-compatible WAV: 16kHz, mono, 16-bit
+    const options = {
+      sampleRate: 16000,
+      channels: 1,
+      bitsPerSample: 16,
+      audioSource: 6, // VOICE_RECOGNITION on Android
+      wavFile: 'recording.wav',
+    };
+
+    AudioRecord.init(options);
+    setAudioRecordInitialized(true);
+    console.log('AudioRecord initialized with options:', options);
+  };
+
   const startRecording = async () => {
     if (!selectedMatter) {
       Alert.alert('Select Matter', 'Please select a matter first');
       setShowMatterPicker(true);
       return;
     }
+
+    const hasPermission = await requestPermissions();
+    if (!hasPermission) {
+      Alert.alert('Permission Required', 'Microphone access is needed to record meetings.');
+      return;
+    }
+
     try {
-      const permission = await Audio.requestPermissionsAsync();
-      if (!permission.granted) {
-        Alert.alert('Permission Required', 'Microphone access is needed');
+      if (Platform.OS === 'web') {
+        // Web fallback using expo-av
+        await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
+        Alert.alert('Web Preview', 'Recording is limited on web. Please use a mobile build for full functionality.');
         return;
       }
-      await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
-      // Use WAV/PCM format for Whisper STT compatibility
-      // 16kHz mono 16-bit is optimal for speech recognition
-      const recordingOptions = {
-        android: {
-          extension: '.wav',
-          outputFormat: Audio.AndroidOutputFormat.DEFAULT,
-          audioEncoder: Audio.AndroidAudioEncoder.DEFAULT,
-          sampleRate: 16000,
-          numberOfChannels: 1,
-          bitRate: 256000,
-        },
-        ios: {
-          extension: '.wav',
-          outputFormat: Audio.IOSOutputFormat.LINEARPCM,
-          audioQuality: Audio.IOSAudioQuality.HIGH,
-          sampleRate: 16000,
-          numberOfChannels: 1,
-          bitDepth: 16,
-          linearPCMBitDepth: 16,
-          linearPCMIsBigEndian: false,
-          linearPCMIsFloat: false,
-        },
-        web: {
-          mimeType: 'audio/webm',
-          bitsPerSecond: 128000,
-        },
-      };
-      const { recording } = await Audio.Recording.createAsync(recordingOptions);
-      recordingRef.current = recording;
+
+      // Initialize AudioRecord if not already done
+      initAudioRecord();
+
+      // Start recording
+      AudioRecord.start();
       setIsRecording(true);
       setDuration(0);
       timerRef.current = setInterval(() => setDuration((d) => d + 1), 1000);
+      console.log('Recording started');
     } catch (err) {
       console.error('Failed to start recording:', err);
       Alert.alert('Error', 'Failed to start recording');
@@ -93,25 +129,32 @@ export default function RecordScreen() {
   };
 
   const stopRecording = async () => {
-    if (!recordingRef.current) return;
+    if (!isRecording) return;
+
     setIsRecording(false);
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
+
     try {
-      await recordingRef.current.stopAndUnloadAsync();
-      const uri = recordingRef.current.getURI();
-      recordingRef.current = null;
-      if (!uri) {
+      if (Platform.OS === 'web') return;
+
+      // Stop recording and get the WAV file path
+      const audioFile = await AudioRecord.stop();
+      console.log('Recording stopped, file:', audioFile);
+
+      if (!audioFile) {
         Alert.alert('Error', 'No audio file was created. Please try recording again.');
         return;
       }
+
       if (!selectedMatter) {
         Alert.alert('Select Matter', 'Please select a matter first');
         return;
       }
-      await processRecording(uri);
+
+      await processRecording(audioFile);
     } catch (err) {
       console.error('Failed to stop recording:', err);
       Alert.alert('Error', 'Failed to stop recording');
@@ -149,36 +192,29 @@ export default function RecordScreen() {
   };
 
   const transcribeAudio = async (uri: string): Promise<string> => {
-    // Web fallback: STT is native-only, so return a placeholder transcript to keep the flow working
     if (Platform.OS === 'web') {
       return '[Transcription unavailable on web preview. Please use a mobile build for real recording and transcription.]';
     }
 
-    // Check if STT is ready
     if (!isSTTReady()) {
       throw new Error('Speech recognition not initialized. Please restart the app.');
     }
-    // Convert file:// URI to path for Cactus STT
-    // Cactus expects a file path, not a URI
-    const filePath = uri?.startsWith('file://') ? uri.replace('file://', '') : uri;
-    if (!filePath) {
+
+    if (!uri) {
       throw new Error('Recording file path missing');
     }
-    console.log('Transcribing audio from:', filePath);
-    console.log('Original URI:', uri);
-    console.log('Platform:', Platform.OS);
+
+    console.log('Transcribing WAV audio:', uri);
 
     try {
-      const result = await cactusTranscribe(filePath);
+      const result = await cactusTranscribe(uri);
       console.log('Transcription successful, length:', result?.length);
       return result;
     } catch (err: any) {
-      console.error('Cactus transcription error details:', {
+      console.error('Cactus transcription error:', {
         message: err?.message,
         name: err?.name,
-        stack: err?.stack,
-        filePath,
-        originalUri: uri,
+        uri,
       });
       throw new Error(`Cactus transcription failed: ${err?.message || 'Unknown error'}`);
     }

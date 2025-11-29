@@ -68,9 +68,11 @@ export const initializeCactus = async (
     // Download model if not already downloaded
     if (!isDownloaded) {
       console.log('Downloading Cactus model...');
-      await lmInstance.download((progress: number) => {
-        console.log(`Download progress: ${Math.round(progress * 100)}%`);
-        onProgress?.(progress);
+      await lmInstance.download({
+        onProgress: (progress: number) => {
+          console.log(`Download progress: ${Math.round(progress * 100)}%`);
+          onProgress?.(progress);
+        },
       });
       isDownloaded = true;
     }
@@ -101,9 +103,12 @@ export const initializeCactusSTT = async (
   try {
     sttInstance = new CactusSTT({ model: STT_MODEL_NAME });
 
-    await sttInstance.download((progress: number) => {
-      console.log(`STT Download progress: ${Math.round(progress * 100)}%`);
-      onProgress?.(progress);
+    // Download API takes an object with onProgress callback
+    await sttInstance.download({
+      onProgress: (progress: number) => {
+        console.log(`STT Download progress: ${Math.round(progress * 100)}%`);
+        onProgress?.(progress);
+      },
     });
 
     await sttInstance.init();
@@ -219,47 +224,44 @@ export const transcribeAudio = async (
   }
 
   // Validate audioPath before passing to native SDK
-  // The cactus SDK may call .replace() internally on the path
   if (!audioPath || typeof audioPath !== 'string' || audioPath.length === 0) {
     throw new Error(`Invalid audio path passed to transcribeAudio: ${JSON.stringify(audioPath)}`);
   }
 
-  // Ensure we have an absolute file path (not a file:// URI)
-  // Some Android devices return paths without file:// prefix
-  let filePath = audioPath;
-  if (filePath.startsWith('file://')) {
-    filePath = filePath.replace('file://', '');
-  }
-
-  // Validate the processed path
-  if (!filePath || filePath.length === 0) {
-    throw new Error(`Failed to process audio path: original=${audioPath}, processed=${filePath}`);
-  }
-
-  console.log('Cactus STT transcribing:', filePath);
+  console.log('Cactus STT transcribing:', audioPath);
+  console.log('STT instance exists:', !!sttInstance);
 
   try {
+    // Pass the path directly - the native SDK handles file:// stripping internally
+    console.log('Calling sttInstance.transcribe with:', { audioFilePath: audioPath });
     const result = await sttInstance.transcribe({
-      audioFilePath: filePath,
+      audioFilePath: audioPath,
       onToken,
     });
+
+    console.log('STT raw result:', JSON.stringify(result, null, 2));
 
     // Validate result before returning
     if (!result) {
       throw new Error('Cactus STT returned null/undefined result');
     }
 
-    if (!result.success) {
-      throw new Error('Cactus STT transcription failed');
+    // Check all possible response fields
+    const transcription = result.response || result.transcription || result.text || result.result;
+    console.log('Extracted transcription:', transcription);
+    console.log('Result keys:', Object.keys(result));
+
+    if (!result.success && result.success !== undefined) {
+      throw new Error(`Cactus STT transcription failed: success=${result.success}`);
     }
 
-    if (typeof result.response !== 'string') {
-      console.error('Unexpected transcription type:', typeof result.response, result);
-      throw new Error(`Invalid transcription result: ${JSON.stringify(result)}`);
+    if (typeof transcription !== 'string') {
+      console.error('Unexpected transcription type:', typeof transcription, result);
+      throw new Error(`Invalid transcription result. Keys: ${Object.keys(result).join(', ')}. Full result: ${JSON.stringify(result)}`);
     }
 
     console.log(`STT: ${result.tokensPerSecond?.toFixed(1)} tokens/sec, ${result.totalTimeMs}ms`);
-    return result.response;
+    return transcription;
   } catch (error: any) {
     console.error('Transcription error:', error);
     const errorMsg = error?.message || error?.toString() || 'Unknown transcription error';
