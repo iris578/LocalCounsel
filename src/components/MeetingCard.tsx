@@ -1,5 +1,6 @@
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import { Meeting } from '../types';
+import { theme } from '../theme/tokens';
 
 interface MeetingCardProps {
   meeting: Meeting;
@@ -45,7 +46,8 @@ export default function MeetingCard({ meeting, onPress }: MeetingCardProps) {
     return 'No transcript available';
   };
 
-  const hasAiNotices = meeting.extractedInfo.aiNoticed &&
+  const hasAiNotices =
+    meeting.extractedInfo.aiNoticed &&
     meeting.extractedInfo.aiNoticed.length > 0 &&
     !meeting.extractedInfo.aiNoticed.includes('Unable to extract');
 
@@ -75,22 +77,16 @@ export default function MeetingCard({ meeting, onPress }: MeetingCardProps) {
       <View style={styles.footer}>
         <View style={styles.stats}>
           {meeting.extractedInfo.people.length > 0 && (
-            <Text style={styles.stat}>
-              👤 {meeting.extractedInfo.people.length} people
-            </Text>
+            <Text style={styles.stat}>People {meeting.extractedInfo.people.length}</Text>
           )}
           {meeting.extractedInfo.dates.length > 0 && (
-            <Text style={styles.stat}>
-              📅 {meeting.extractedInfo.dates.length} dates
-            </Text>
+            <Text style={styles.stat}>Dates {meeting.extractedInfo.dates.length}</Text>
           )}
           {meeting.extractedInfo.actionItems.length > 0 && (
-            <Text style={styles.stat}>
-              ✓ {meeting.extractedInfo.actionItems.length} actions
-            </Text>
+            <Text style={styles.stat}>Actions {meeting.extractedInfo.actionItems.length}</Text>
           )}
         </View>
-        <Text style={styles.arrow}>›</Text>
+        <Text style={styles.arrow}>{'>'}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -98,10 +94,11 @@ export default function MeetingCard({ meeting, onPress }: MeetingCardProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: theme.palette.creamLight,
+    borderRadius: theme.radii.xl,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.md,
+    ...theme.shadows.soft,
   },
   header: {
     flexDirection: 'row',
@@ -114,12 +111,12 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: 15,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: '700',
+    color: theme.palette.charcoal,
   },
   time: {
     fontSize: 13,
-    color: '#888',
+    color: theme.palette.accentGrey,
     marginTop: 2,
   },
   badges: {
@@ -127,30 +124,30 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   badge: {
-    backgroundColor: '#252525',
+    backgroundColor: theme.palette.sandBase,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 6,
+    borderRadius: theme.radii.md,
   },
   badgeText: {
-    color: '#888',
+    color: theme.palette.charcoal,
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   badgeWarning: {
-    backgroundColor: '#3d2f00',
+    backgroundColor: theme.palette.softYellow,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 6,
+    borderRadius: theme.radii.md,
   },
   badgeWarningText: {
-    color: '#fbbf24',
+    color: theme.palette.warmBrown,
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   preview: {
     fontSize: 14,
-    color: '#aaa',
+    color: theme.palette.charcoal,
     lineHeight: 20,
     marginBottom: 12,
   },
@@ -165,11 +162,11 @@ const styles = StyleSheet.create({
   },
   stat: {
     fontSize: 12,
-    color: '#666',
+    color: theme.palette.accentGrey,
   },
   arrow: {
-    fontSize: 20,
-    color: '#555',
-    fontWeight: '300',
+    fontSize: 18,
+    color: theme.palette.accentGrey,
+    fontWeight: '600',
   },
 });

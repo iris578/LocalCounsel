@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { db } from '../services/database';
 import { initializeCactus, initializeCactusSTT } from '../services/cactus';
 import { useAppStore } from '../stores/appStore';
+import { theme } from '../theme/tokens';
 
 const isWeb = Platform.OS === 'web';
 
@@ -56,12 +57,14 @@ export default function RootLayout() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <StatusBar style="light" />
+        <StatusBar style="dark" />
         <View style={styles.logoContainer}>
-          <Text style={styles.logo}>⚖️</Text>
-          <Text style={styles.appName}>CounselVault</Text>
+          <View style={styles.logoBadge}>
+            <Text style={styles.logo}>LC</Text>
+          </View>
+          <Text style={styles.appName}>LocalCounsel</Text>
         </View>
-        <ActivityIndicator size="large" color="#3b82f6" />
+        <ActivityIndicator size="large" color={theme.palette.olive} />
         <Text style={styles.loadingText}>{loadingStep}</Text>
         {downloadProgress > 0 && (
           <View style={styles.progressContainer}>
@@ -79,7 +82,7 @@ export default function RootLayout() {
   if (error) {
     return (
       <View style={styles.loadingContainer}>
-        <StatusBar style="light" />
+        <StatusBar style="dark" />
         <Text style={styles.errorText}>Failed to initialize</Text>
         <Text style={styles.loadingSubtext}>{error}</Text>
       </View>
@@ -88,13 +91,13 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <Stack
         screenOptions={{
-          headerStyle: { backgroundColor: '#0a0a0a' },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: '600' },
-          contentStyle: { backgroundColor: '#0a0a0a' },
+          headerStyle: { backgroundColor: theme.palette.creamLight },
+          headerTintColor: theme.palette.charcoal,
+          headerTitleStyle: { fontWeight: '600', color: theme.palette.charcoal },
+          contentStyle: { backgroundColor: theme.palette.lilacMist },
         }}
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -107,15 +110,16 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
-  loadingContainer: { flex: 1, backgroundColor: '#0a0a0a', alignItems: 'center', justifyContent: 'center', padding: 40 },
-  logoContainer: { alignItems: 'center', marginBottom: 40 },
-  logo: { fontSize: 64, marginBottom: 12 },
-  appName: { fontSize: 28, fontWeight: '700', color: '#fff' },
-  loadingText: { color: '#fff', fontSize: 16, marginTop: 20, fontWeight: '500', textAlign: 'center' },
-  loadingSubtext: { color: '#666', fontSize: 13, marginTop: 16, textAlign: 'center' },
+  loadingContainer: { flex: 1, backgroundColor: theme.palette.lilacMist, alignItems: 'center', justifyContent: 'center', padding: 40 },
+  logoContainer: { alignItems: 'center', marginBottom: 32 },
+  logoBadge: { width: 72, height: 72, borderRadius: 20, backgroundColor: theme.palette.creamLight, alignItems: 'center', justifyContent: 'center', ...theme.shadows.soft },
+  logo: { fontSize: 28, fontWeight: '700', color: theme.palette.charcoal },
+  appName: { fontSize: 28, fontWeight: '700', color: theme.palette.charcoal, marginTop: 14 },
+  loadingText: { color: theme.palette.charcoal, fontSize: 16, marginTop: 20, fontWeight: '500', textAlign: 'center' },
+  loadingSubtext: { color: theme.palette.accentGrey, fontSize: 13, marginTop: 16, textAlign: 'center' },
   progressContainer: { marginTop: 16, alignItems: 'center', width: '100%' },
-  progressBar: { width: '80%', height: 4, backgroundColor: '#333', borderRadius: 2, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: '#3b82f6', borderRadius: 2 },
-  progressText: { color: '#888', fontSize: 12, marginTop: 8 },
-  errorText: { color: '#ef4444', fontSize: 18, fontWeight: '600' },
+  progressBar: { width: '80%', height: 6, backgroundColor: '#E6E0D9', borderRadius: 4, overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: theme.palette.olive, borderRadius: 4 },
+  progressText: { color: theme.palette.accentGrey, fontSize: 12, marginTop: 8 },
+  errorText: { color: theme.palette.coral, fontSize: 18, fontWeight: '600' },
 });

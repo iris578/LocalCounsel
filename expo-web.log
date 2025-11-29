@@ -1,0 +1,31 @@
+  --non-interactive is not supported, use $CI=1 instead
+Error: Cannot find module '@babel/code-frame'
+Require stack:
+- C:\Users\weisa\Dropbox\Work\Fuck You Folder\LocalCounsel\node_modules\@expo\json-file\build\JsonFile.js
+- C:\Users\weisa\Dropbox\Work\Fuck You Folder\LocalCounsel\node_modules\@expo\config\build\Config.js
+- C:\Users\weisa\Dropbox\Work\Fuck You Folder\LocalCounsel\node_modules\@expo\config\build\index.js
+- C:\Users\weisa\Dropbox\Work\Fuck You Folder\LocalCounsel\node_modules\expo\node_modules\@expo\cli\build\src\start\detectDevClient.js
+- C:\Users\weisa\Dropbox\Work\Fuck You Folder\LocalCounsel\node_modules\expo\node_modules\@expo\cli\build\src\start\resolveOptions.js
+- C:\Users\weisa\Dropbox\Work\Fuck You Folder\LocalCounsel\node_modules\expo\node_modules\@expo\cli\build\src\start\index.js
+- C:\Users\weisa\Dropbox\Work\Fuck You Folder\LocalCounsel\node_modules\expo\node_modules\@expo\cli\build\bin\cli
+- C:\Users\weisa\Dropbox\Work\Fuck You Folder\LocalCounsel\node_modules\expo\bin\cli
+Error: Cannot find module '@babel/code-frame'
+Require stack:
+- C:\Users\weisa\Dropbox\Work\Fuck You Folder\LocalCounsel\node_modules\@expo\json-file\build\JsonFile.js
+- C:\Users\weisa\Dropbox\Work\Fuck You Folder\LocalCounsel\node_modules\@expo\config\build\Config.js
+- C:\Users\weisa\Dropbox\Work\Fuck You Folder\LocalCounsel\node_modules\@expo\config\build\index.js
+- C:\Users\weisa\Dropbox\Work\Fuck You Folder\LocalCounsel\node_modules\expo\node_modules\@expo\cli\build\src\start\detectDevClient.js
+- C:\Users\weisa\Dropbox\Work\Fuck You Folder\LocalCounsel\node_modules\expo\node_modules\@expo\cli\build\src\start\resolveOptions.js
+- C:\Users\weisa\Dropbox\Work\Fuck You Folder\LocalCounsel\node_modules\expo\node_modules\@expo\cli\build\src\start\index.js
+- C:\Users\weisa\Dropbox\Work\Fuck You Folder\LocalCounsel\node_modules\expo\node_modules\@expo\cli\build\bin\cli
+- C:\Users\weisa\Dropbox\Work\Fuck You Folder\LocalCounsel\node_modules\expo\bin\cli
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+    at Module._load (node:internal/modules/cjs/loader:1226:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1503:12)
+    at require (node:internal/modules/helpers:152:16)
+    at Object.<anonymous> (C:\Users\weisa\Dropbox\Work\Fuck You Folder\LocalCounsel\node_modules\@expo\json-file\build\JsonFile.js:39:22)
+    at Module._compile (node:internal/modules/cjs/loader:1760:14)

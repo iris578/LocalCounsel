@@ -1,5 +1,6 @@
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import { Matter } from '../types';
+import { theme } from '../theme/tokens';
 
 interface MatterCardProps {
   matter: Matter;
@@ -20,7 +21,7 @@ export default function MatterCard({ matter, onPress }: MatterCardProps) {
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={styles.iconContainer}>
-        <Text style={styles.icon}>📁</Text>
+        <Text style={styles.icon}>M</Text>
       </View>
       <View style={styles.content}>
         <Text style={styles.name} numberOfLines={1}>
@@ -30,14 +31,12 @@ export default function MatterCard({ matter, onPress }: MatterCardProps) {
           <Text style={styles.metaText}>
             {matter.meetingCount} {matter.meetingCount === 1 ? 'meeting' : 'meetings'}
           </Text>
-          <Text style={styles.metaDot}>•</Text>
-          <Text style={styles.metaText}>
-            {formatDate(matter.lastMeetingAt)}
-          </Text>
+          <Text style={styles.metaDot}>.</Text>
+          <Text style={styles.metaText}>{formatDate(matter.lastMeetingAt)}</Text>
         </View>
       </View>
       <View style={styles.arrow}>
-        <Text style={styles.arrowText}>›</Text>
+        <Text style={styles.arrowText}>{'>'}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -45,32 +44,35 @@ export default function MatterCard({ matter, onPress }: MatterCardProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: theme.palette.sandBase,
+    borderRadius: theme.radii.xl,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
   },
   iconContainer: {
     width: 44,
     height: 44,
-    borderRadius: 10,
-    backgroundColor: '#2a2a2a',
+    borderRadius: theme.radii.lg,
+    backgroundColor: theme.palette.creamLight,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
+    marginRight: theme.spacing.md,
+    ...theme.shadows.soft,
   },
   icon: {
-    fontSize: 20,
+    fontSize: 18,
+    fontWeight: '700',
+    color: theme.palette.charcoal,
   },
   content: {
     flex: 1,
   },
   name: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: '700',
+    color: theme.palette.charcoal,
     marginBottom: 4,
   },
   meta: {
@@ -79,18 +81,19 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 13,
-    color: '#888',
+    color: theme.palette.accentGrey,
   },
   metaDot: {
-    color: '#555',
-    marginHorizontal: 6,
+    color: theme.palette.accentGrey,
+    marginHorizontal: 8,
+    fontWeight: '700',
   },
   arrow: {
-    marginLeft: 8,
+    marginLeft: theme.spacing.sm,
   },
   arrowText: {
-    fontSize: 24,
-    color: '#555',
-    fontWeight: '300',
+    fontSize: 18,
+    color: theme.palette.accentGrey,
+    fontWeight: '600',
   },
 });
