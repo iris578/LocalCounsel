@@ -53,7 +53,26 @@ export default function RecordScreen() {
         return;
       }
       await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
-      const { recording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+      // Use WAV format for compatibility with Whisper STT
+      const recordingOptions = {
+        ...Audio.RecordingOptionsPresets.HIGH_QUALITY,
+        android: {
+          ...Audio.RecordingOptionsPresets.HIGH_QUALITY.android,
+          extension: '.wav',
+          outputFormat: Audio.AndroidOutputFormat.DEFAULT,
+          audioEncoder: Audio.AndroidAudioEncoder.DEFAULT,
+        },
+        ios: {
+          ...Audio.RecordingOptionsPresets.HIGH_QUALITY.ios,
+          extension: '.wav',
+          outputFormat: Audio.IOSOutputFormat.LINEARPCM,
+          audioQuality: Audio.IOSAudioQuality.HIGH,
+          linearPCMBitDepth: 16,
+          linearPCMIsBigEndian: false,
+          linearPCMIsFloat: false,
+        },
+      };
+      const { recording } = await Audio.Recording.createAsync(recordingOptions);
       recordingRef.current = recording;
       setIsRecording(true);
       setDuration(0);
@@ -104,10 +123,11 @@ export default function RecordScreen() {
       });
       setProcessing(false);
       router.replace({ pathname: '/meeting/[id]', params: { id: meetingId } });
-    } catch (err) {
+    } catch (err: any) {
       console.error('Processing failed:', err);
       setProcessing(false);
-      Alert.alert('Error', 'Failed to process recording');
+      const errorMsg = err?.message || err?.toString() || 'Unknown error';
+      Alert.alert('Error', `Failed to process recording: ${errorMsg}`);
     }
   };
 
@@ -116,8 +136,11 @@ export default function RecordScreen() {
     if (!isSTTReady()) {
       throw new Error('Speech recognition not initialized. Please restart the app.');
     }
-    // Use real Cactus STT transcription
-    return await cactusTranscribe(uri);
+    // Convert file:// URI to path for Cactus STT
+    // Cactus expects a file path, not a URI
+    const filePath = uri.startsWith('file://') ? uri.replace('file://', '') : uri;
+    console.log('Transcribing audio from:', filePath);
+    return await cactusTranscribe(filePath);
   };
 
   const formatDuration = (seconds: number) => {
